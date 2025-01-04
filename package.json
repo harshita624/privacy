@@ -5,13 +5,14 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
-    "build": "expo export:web",
+    "build": "npx expo install @expo/metro-runtime && npx expo export:web",
     "eject": "expo eject",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~4.0.0",
     "@react-native-community/viewpager": "^5.0.11",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
