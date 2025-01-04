@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
-  "build": "npx expo export:web",
-  "eject": "expo eject",
+    "build": "npx expo export:web",
+    "eject": "expo eject",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"
