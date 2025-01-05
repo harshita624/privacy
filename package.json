@@ -5,23 +5,25 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
-    "build": "npx expo export:web",
+    "build": "NODE_OPTIONS=--no-experimental-fetch npx expo export:web",
     "eject": "expo eject",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "predeploy": "npm run build",
+    "deploy": "npx serve web-build"
   },
   "dependencies": {
     "@react-native-community/viewpager": "5.0.11",
     "@react-navigation/bottom-tabs": "7.2.0",
     "@react-navigation/native": "7.0.14",
-    "expo": "~52.0.0",
-    "expo-camera": "~16.0.0",
-    "expo-image-picker": "~14.7.1",
-    "expo-media-library": "~15.9.2",
-    "expo-permissions": "~14.4.0",
-    "expo-splash-screen": "~0.29.0",
-    "expo-status-bar": "~2.0.0",
+    "expo": "~49.0.0",
+    "expo-camera": "~13.4.4",
+    "expo-image-picker": "~14.3.2",
+    "expo-media-library": "~15.4.1",
+    "expo-permissions": "~14.2.1",
+    "expo-splash-screen": "~0.20.5",
+    "expo-status-bar": "~1.6.0",
     "i18n-js": "4.5.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -31,15 +33,14 @@
     "react-native-safe-area-context": "4.6.3",
     "react-native-screens": "~3.22.0",
     "react-native-vector-icons": "10.0.0",
-    "react-native-web": "~0.19.6"
+    "react-native-web": "~0.19.6",
+    "@expo/webpack-config": "^19.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0",
-    "@expo/webpack-config": "^19.0.0",
-    "expo-cli": "^6.3.10"
+    "@babel/core": "^7.20.0"
   },
   "private": true,
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   }
 }

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: privacy-app
+    env: node
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: npx serve web-build
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: NODE_ENV
+        value: production
+      - key: NODE_OPTIONS
+        value: --no-experimental-fetch
+    healthCheckPath: /
+    autoDeploy: true
