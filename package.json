@@ -25,11 +25,12 @@
     "react-native-reanimated": "^3.16.6",
     "react-native-safe-area-context": "^5.0.0",
     "react-native-screens": "^4.4.0",
-    "react-native-web": "~0.19.6"
+    "react-native-web": "~0.19.6",
+    "webpack-bundle-analyzer": "^4.10.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "cross-env": "^7.0.3",
-    "webpack-bundle-analyzer": "^4.10.2"
+    "cross-env": "^7.0.3"
+    
   }
 }
