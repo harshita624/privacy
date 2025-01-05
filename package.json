@@ -5,7 +5,7 @@
   "scripts": {
     "start": "expo start",
     "prebuild": "npm install expo",
-     "build": "npx cross-env NODE_OPTIONS=--no-experimental-fetch expo export:web",
+    "build": "npx cross-env NODE_OPTIONS=--no-experimental-fetch expo export:web",
     "web": "expo start --web"
   },
   "dependencies": {
