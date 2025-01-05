@@ -6355,10 +6355,22 @@ expo-image-manipulator@~11.8.0:
   dependencies:
     expo-image-loader "~4.6.0"
 
+expo-image-picker@~14.7.1:
+  version "14.7.1"
+  resolved "https://registry.yarnpkg.com/expo-image-picker/-/expo-image-picker-14.7.1.tgz#c51faff3a3fbffc6ae93d7155370beb1a2d2baea"
+  integrity sha512-ILQVOJgI3aEzrDmCFGDPtpAepYkn8mot8G7vfQ51BfFdQbzL6N3Wm1fS/ofdWlAZJl/qT2DwaIh5xYmf3SyGZA==
+  dependencies:
+    expo-image-loader "~4.6.0"
+
 expo-keep-awake@~12.8.2:
   version "12.8.2"
   resolved "https://registry.npmjs.org/expo-keep-awake/-/expo-keep-awake-12.8.2.tgz"
   integrity sha512-uiQdGbSX24Pt8nGbnmBtrKq6xL/Tm3+DuDRGBk/3ZE/HlizzNosGRIufIMJ/4B4FRw4dw8KU81h2RLuTjbay6g==
+
+expo-media-library@~15.9.2:
+  version "15.9.2"
+  resolved "https://registry.yarnpkg.com/expo-media-library/-/expo-media-library-15.9.2.tgz#cf7183db639a3065862ed0696a315e946d5812a0"
+  integrity sha512-ExRcCxNO768aWPQr9axuBDQLcFnRTSiqvWZ1XvnopCfZEic04wJ/CPAE1hLqTp7AyYrd6jHpqxa/aNKBAAFVeA==
 
 expo-modules-autolinking@1.10.3:
   version "1.10.3"

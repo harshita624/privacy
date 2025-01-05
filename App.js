@@ -1,48 +1,126 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, Alert, Image, TouchableOpacity, Modal } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Alert, Image, TouchableOpacity, Modal, Animated, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Camera } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
+import * as MediaLibrary from 'expo-media-library';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as SplashScreen from 'expo-splash-screen';
 
-SplashScreen.preventAutoHideAsync(); // Prevent splash screen from hiding
+SplashScreen.preventAutoHideAsync();
 
 const HomeScreen = ({ navigation }) => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   return (
     <View style={styles.homeContainer}>
-      <Text style={styles.title}>Welcome to Privacy App</Text>
-      <Text style={styles.subtitle}>Manage your privacy settings easily.</Text>
-      <Button
-        title="Go to Camera"
-        onPress={() => navigation.navigate('Camera')}
-        color="#4CAF50"
-      />
+      <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
+        <Text style={styles.title}>Enigma Lens</Text>
+        <Text style={styles.subtitle}>Capture moments with privacy</Text>
+        <TouchableOpacity
+          style={styles.navigationButton}
+          onPress={() => navigation.navigate('Camera')}
+        >
+          <Text style={styles.navigationButtonText}>Enter Camera</Text>
+          <Ionicons name="arrow-forward" size={20} color="#fff" style={styles.buttonIcon} />
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 };
 
 const CameraScreen = () => {
   const [hasPermission, setHasPermission] = useState(null);
+  const [mediaPermission, setMediaPermission] = useState(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [camera, setCamera] = useState(null);
   const [capturedPhoto, setCapturedPhoto] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [cameraType, setCameraType] = useState(Camera.Constants.Type.back);
+  const [flashMode, setFlashMode] = useState(Camera.Constants.FlashMode.off);
 
   useEffect(() => {
-    const getPermission = async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    };
-    getPermission();
+    (async () => {
+      // Request both camera and media library permissions
+      const cameraStatus = await Camera.requestCameraPermissionsAsync();
+      const mediaStatus = await MediaLibrary.requestPermissionsAsync();
+      
+      setHasPermission(cameraStatus.status === 'granted');
+      setMediaPermission(mediaStatus.status === 'granted');
+      
+      // If permissions are denied, show alert with instructions
+      if (cameraStatus.status !== 'granted' || mediaStatus.status !== 'granted') {
+        Alert.alert(
+          'Permissions Required',
+          'This app needs camera and media library access to function properly. Please enable them in your device settings.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => openSettings() }
+          ]
+        );
+      }
+    })();
   }, []);
 
-  const handleTakePhoto = async () => {
-    if (camera) {
-      const photo = await camera.takePictureAsync();
-      setCapturedPhoto(photo.uri);
-      setIsModalVisible(true);
+  const openSettings = async () => {
+    if (Platform.OS === 'ios') {
+      Linking.openURL('app-settings:');
+    } else {
+      Linking.openSettings();
     }
+  };
+
+  const handleTakePhoto = async () => {
+    if (camera && isCameraReady) {
+      try {
+        const photo = await camera.takePictureAsync({
+          quality: 1,
+          exif: true,
+        });
+        setCapturedPhoto(photo.uri);
+        setIsModalVisible(true);
+      } catch (error) {
+        Alert.alert('Error', 'Failed to take photo. Please try again.');
+      }
+    }
+  };
+
+  const handleSavePhoto = async () => {
+    if (mediaPermission && capturedPhoto) {
+      try {
+        const asset = await MediaLibrary.createAssetAsync(capturedPhoto);
+        await MediaLibrary.createAlbumAsync('EnigmaLens', asset, false);
+        Alert.alert('Success', 'Photo saved to EnigmaLens album!');
+        handleCloseModal();
+      } catch (error) {
+        Alert.alert('Error', 'Failed to save photo. Please try again.');
+      }
+    }
+  };
+
+  const toggleCameraType = () => {
+    setCameraType(
+      cameraType === Camera.Constants.Type.back
+        ? Camera.Constants.Type.front
+        : Camera.Constants.Type.back
+    );
+  };
+
+  const toggleFlashMode = () => {
+    setFlashMode(
+      flashMode === Camera.Constants.FlashMode.off
+        ? Camera.Constants.FlashMode.on
+        : Camera.Constants.FlashMode.off
+    );
   };
 
   const handleCloseModal = () => {
@@ -50,19 +128,21 @@ const CameraScreen = () => {
     setCapturedPhoto(null);
   };
 
-  if (hasPermission === null) {
-    return <Text style={styles.loadingText}>Requesting permission...</Text>;
+  if (hasPermission === null || mediaPermission === null) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Initializing camera...</Text>
+      </View>
+    );
   }
 
-  if (hasPermission === false) {
+  if (hasPermission === false || mediaPermission === false) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>No access to camera. Please grant permission to take photos.</Text>
-        <Button
-          title="Retry"
-          onPress={() => Camera.requestCameraPermissionsAsync().then(({ status }) => setHasPermission(status === 'granted'))}
-          color="#4CAF50"
-        />
+        <Text style={styles.errorText}>Camera or Media Library access denied</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={openSettings}>
+          <Text style={styles.retryButtonText}>Open Settings</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -71,21 +151,44 @@ const CameraScreen = () => {
     <View style={styles.container}>
       <Camera
         style={styles.camera}
-        type={Camera.Constants.Type.back}
+        type={cameraType}
+        flashMode={flashMode}
         onCameraReady={() => setIsCameraReady(true)}
         ref={(ref) => setCamera(ref)}
-      />
+      >
+        <View style={styles.controlsContainer}>
+          <TouchableOpacity style={styles.controlButton} onPress={toggleFlashMode}>
+            <Ionicons
+              name={flashMode === Camera.Constants.FlashMode.off ? 'flash-off' : 'flash'}
+              size={24}
+              color="#fff"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.controlButton} onPress={toggleCameraType}>
+            <Ionicons name="camera-reverse" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      </Camera>
+      
       {isCameraReady && (
         <TouchableOpacity style={styles.captureButton} onPress={handleTakePhoto}>
-          <Ionicons name="camera" size={40} color="#fff" />
+          <View style={styles.captureButtonInner} />
         </TouchableOpacity>
       )}
-      <Modal visible={isModalVisible} transparent={true} animationType="slide">
+
+      <Modal visible={isModalVisible} transparent={true} animationType="fade">
         <View style={styles.modalContainer}>
           <Image source={{ uri: capturedPhoto }} style={styles.capturedImage} />
           <View style={styles.modalButtons}>
-            <Button title="Close" onPress={handleCloseModal} color="#FF5252" />
-            <Button title="Save" onPress={() => Alert.alert('Photo saved!')} color="#4CAF50" />
+            <TouchableOpacity style={styles.modalButton} onPress={handleCloseModal}>
+              <Text style={styles.modalButtonText}>Discard</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.modalButton, styles.saveButton]}
+              onPress={handleSavePhoto}
+            >
+              <Text style={styles.modalButtonText}>Save</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -97,21 +200,32 @@ const Tab = createBottomTabNavigator();
 
 const App = () => {
   useEffect(() => {
-    SplashScreen.hideAsync(); // Hide splash screen
+    SplashScreen.hideAsync();
   }, []);
 
   return (
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={({ route }) => ({
-          tabBarIcon: ({ color, size }) => {
-            let iconName;
-            if (route.name === 'Home') {
-              iconName = 'home';
-            } else if (route.name === 'Camera') {
-              iconName = 'camera';
-            }
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName = route.name === 'Home' ? 'home' : 'camera';
             return <Ionicons name={iconName} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: '#6366f1',
+          tabBarInactiveTintColor: '#94a3b8',
+          tabBarStyle: {
+            backgroundColor: '#1f2937',
+            borderTopWidth: 0,
+            elevation: 0,
+            height: 60,
+            paddingBottom: 8,
+          },
+          headerStyle: {
+            backgroundColor: '#1f2937',
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
           },
         })}
       >
@@ -125,100 +239,151 @@ const App = () => {
 const styles = StyleSheet.create({
   homeContainer: {
     flex: 1,
+    backgroundColor: '#111827',
+  },
+  contentContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f0f4f8', // Light, neutral background
   },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: '700',
-    color: '#1e88e5', // Modern blue for primary color
+    color: '#6366f1',
     marginBottom: 12,
     textAlign: 'center',
+    textShadowColor: 'rgba(99, 102, 241, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   subtitle: {
     fontSize: 18,
-    color: '#616161', // Subtle gray for secondary text
+    color: '#94a3b8',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
+  },
+  navigationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#6366f1',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    elevation: 4,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  navigationButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  buttonIcon: {
+    marginLeft: 4,
   },
   container: {
     flex: 1,
-    backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#111827',
   },
   camera: {
     flex: 1,
-    width: '100%',
+    justifyContent: 'flex-end',
+  },
+  controlsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 20,
+  },
+  controlButton: {
+    backgroundColor: 'rgba(31, 41, 55, 0.7)',
+    padding: 12,
+    borderRadius: 50,
   },
   captureButton: {
     position: 'absolute',
     bottom: 40,
     alignSelf: 'center',
-    backgroundColor: '#1e88e5', // Matches the title color
-    borderRadius: 50,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 5,
+    width: 80,
+    height: 80,
+    backgroundColor: 'rgba(99, 102, 241, 0.3)',
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  captureButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
+  captureButtonInner: {
+    width: 60,
+    height: 60,
+    backgroundColor: '#6366f1',
+    borderRadius: 30,
+    borderWidth: 3,
+    borderColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#111827',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingText: {
+    color: '#94a3b8',
     fontSize: 18,
-    color: '#9e9e9e', // Subtle gray
-    textAlign: 'center',
-    marginTop: 20,
   },
   errorContainer: {
     flex: 1,
+    backgroundColor: '#111827',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f9eaea', // Light red for error background
   },
   errorText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#d32f2f', // Red for errors
+    fontSize: 18,
+    color: '#ef4444',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#6366f1',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)', // Semi-transparent black
+    backgroundColor: 'rgba(17, 24, 39, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   capturedImage: {
-    width: '80%',
-    height: '60%',
-    borderRadius: 10,
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: '#fff',
+    width: '90%',
+    height: '70%',
+    borderRadius: 16,
+    marginBottom: 20,
   },
   modalButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    width: '70%',
-    marginTop: 16,
+    justifyContent: 'space-between',
+    width: '90%',
   },
   modalButton: {
-    backgroundColor: '#1e88e5',
-    padding: 10,
+    backgroundColor: '#374151',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
     borderRadius: 8,
-    minWidth: 100,
+    minWidth: 120,
     alignItems: 'center',
+  },
+  saveButton: {
+    backgroundColor: '#6366f1',
   },
   modalButtonText: {
     color: '#fff',
@@ -226,6 +391,5 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
-
 
 export default App;
