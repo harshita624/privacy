@@ -26,7 +26,8 @@
     "react-native-safe-area-context": "^4.6.3",
     "react-native-screens": "^4.4.0",
     "react-native-web": "~0.19.6",
-    "webpack-bundle-analyzer": "^4.10.2"
+    "webpack-bundle-analyzer": "^4.10.2",
+    "expo-haptics": "~12.4.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
