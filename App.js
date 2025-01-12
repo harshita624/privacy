@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
 import AppNavigator from './navigation/AppNavigator'; // Ensure the path is correct
-import { ScrollView, StyleSheet } from 'react-native';
 
 SplashScreen.preventAutoHideAsync(); // Prevent auto-hide of splash screen
 

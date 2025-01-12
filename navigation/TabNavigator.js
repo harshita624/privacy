@@ -48,8 +48,8 @@ const TabNavigator = () => (
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Camera" component={CameraScreen} />
     <Tab.Screen name="Privacy Dashboard" component={PrivacyDashboard} />
-    <Tab.Screen name="VPN Recommendations" component={VPNRecommendations} />
-    <Tab.Screen name="VPN Service" component={VPNService} />
+    <Tab.Screen name="VPN Recommendations" component={VPNRecommendations} /> {/* VPN Recommendations tab */}
+    <Tab.Screen name="VPN Service" component={VPNService} /> {/* VPN Service tab */}
   </Tab.Navigator>
 );
 
