@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'black',
+    backgroundColor: '#121212', // Dark gray for background
   },
   camera: {
     flex: 1,
@@ -88,33 +88,49 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 40, // Adjust margin to make the buttons stand out more
   },
   flipButton: {
-    padding: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 15,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Slightly more transparent for a modern look
     borderRadius: 50,
-    marginBottom: 30,
+    marginBottom: 20,
+    shadowColor: '#000', // Subtle shadow effect
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4, // Elevation for Android
   },
   captureButton: {
     padding: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: '#1abc9c', // Teal for a fresh, modern look
     borderRadius: 50,
+    shadowColor: '#000', // Subtle shadow effect
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4, // Elevation for Android
   },
   photoContainer: {
-    marginTop: 20,
+    marginTop: 30,
     alignItems: 'center',
   },
   photoLabel: {
     fontSize: 18,
-    color: '#fff',
+    color: '#fff', // White text for contrast on dark background
     marginBottom: 10,
+    fontWeight: '600', // Slightly bolder for readability
   },
   capturedPhoto: {
     width: 300,
     height: 300,
-    borderRadius: 10,
+    borderRadius: 15, // Slightly more rounded for a modern feel
+    borderWidth: 2,
+    borderColor: '#1abc9c', // Teal border to match the accent color
+    marginTop: 20,
   },
 });
+
 
 export default CameraScreen;
 

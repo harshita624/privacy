@@ -221,13 +221,13 @@ const SettingsScreen = ({ navigation }) => {
 
   return (
     <ScrollView style={styles.container}>
-      <TouchableOpacity 
-        style={styles.backButton} 
-        onPress={() => navigation.goBack()}
-      >
-        <Ionicons name="arrow-back" size={24} color="#6366f1" />
-        <Text style={styles.backButtonText}>Back</Text>
-      </TouchableOpacity>
+  <TouchableOpacity 
+  style={styles.backButton} 
+  onPress={() => navigation.navigate('Home')}
+>
+  <Ionicons name="arrow-back" size={24} color="#fff" style={styles.backIcon} />
+  <Text style={styles.backButtonText}>Back</Text>
+</TouchableOpacity>
 
       {/* Profile Section */}
       <SettingSection title="Profile Information">
@@ -374,81 +374,99 @@ const SettingsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1f2937',
+    backgroundColor: '#181818', // Darker gray for background
+    paddingHorizontal: 24,
+    paddingTop: 30,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 30,
+    animation: 'fadeIn 0.4s ease-out', // Subtle fade-in effect for sections
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#6366f1',
-    marginHorizontal: 16,
-    marginBottom: 8,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1abc9c', // Teal for section titles to contrast with dark theme
+    marginBottom: 10,
+    paddingHorizontal: 16,
   },
   sectionContent: {
-    backgroundColor: '#374151',
-    borderRadius: 12,
+    backgroundColor: '#121212', // Darker gray for content sections
+    borderRadius: 16, // Slightly rounded corners for a clean look
     marginHorizontal: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', // Soft shadow for a subtle effect
+    border: '1px solid #333', // Light border for separation
+    animation: 'fadeIn 0.5s ease-out', // Smooth fade-in effect
   },
   profileHeader: {
     flexDirection: 'row',
-    padding: 16,
     alignItems: 'center',
+    paddingVertical: 24,
+    paddingHorizontal: 24,
   },
   profileIcon: {
-    marginRight: 16,
+    width: 60,
+    height: 60,
+    borderRadius: 30, // Circular profile picture
+    backgroundColor: '#1abc9c', // Teal background for icon
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 20,
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  profileEmail: {
-    fontSize: 14,
-    color: '#94a3b8',
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#ffffff', // White text for name for readability
     marginBottom: 8,
   },
+  profileEmail: {
+    fontSize: 16,
+    color: '#b0b0b0', // Light gray color for email for subtle contrast
+    marginBottom: 12,
+  },
   accountBadge: {
-    backgroundColor: '#6366f1',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+    backgroundColor: '#1abc9c', // Teal for account badge to match accents
+    paddingVertical: 6,
+    paddingHorizontal: 18,
+    borderRadius: 30,
     alignSelf: 'flex-start',
   },
   accountType: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#1f2937',
+    borderBottomColor: '#333', // Subtle divider between items
+    animation: 'fadeIn 0.4s ease-out', // Fade-in effect for settings items
   },
   settingItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
   settingIcon: {
-    marginRight: 16,
+    marginRight: 18,
+    color: '#1abc9c', // Teal color for icons
   },
   settingTitle: {
     fontSize: 16,
-    color: '#fff',
+    color: '#ffffff', // White text for title
+    fontWeight: '600',
   },
   settingSubtitle: {
     fontSize: 14,
-    color: '#94a3b8',
-    marginTop: 2,
+    color: '#b0b0b0', // Light gray subtitle
+    marginTop: 6,
   },
   settingItemRight: {
     flexDirection: 'row',
@@ -457,25 +475,58 @@ const styles = StyleSheet.create({
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#1f2937',
+    borderBottomColor: '#333',
+    animation: 'fadeIn 0.4s ease-out',
   },
   logoutText: {
-    color: '#ef4444',
+    color: '#ef4444', // Red color for logout button
     fontSize: 16,
-    marginLeft: 16,
+    fontWeight: '600',
+    marginLeft: 12,
   },
   deleteButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
   },
   deleteText: {
-    color: '#ef4444',
+    color: '#ef4444', // Red for delete button
     fontSize: 16,
-    marginLeft: 16,
+    fontWeight: '600',
+    marginLeft: 12,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    backgroundColor: '#1abc9c', // Teal background for back button
+    borderRadius: 50,
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', // Soft shadow for button
+    marginBottom: 20,
+    animation: 'fadeIn 0.5s ease-out', // Fade-in effect for back button
+  },
+  backIcon: {
+    marginRight: 12,
+  },
+  backButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
+
+// Professional keyframe animation for sparkling borders
+const keyframes = `
+@keyframes sparkleBorder {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+`;
+
 
 export default SettingsScreen;

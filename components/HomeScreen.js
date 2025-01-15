@@ -95,68 +95,76 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1F1F1F', 
-    padding: 20,
+    backgroundColor: '#121212', // Dark background for modern look
+    paddingHorizontal: 20,
+    paddingVertical: 30,
   },
   contentContainer: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
     backgroundColor: '#2C2C2C', 
-    borderRadius: 15,
+    borderRadius: 20, // More rounded corners for a sleek feel
     padding: 30,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8, 
+    shadowRadius: 12,
+    elevation: 10, // Raised effect for depth
   },
   title: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: '#00B0FF',
-    marginBottom: 10,
+    fontSize: 34, // Adjusted for a more balanced look
+    fontWeight: 'bold', // Stronger emphasis on the title
+    color: '#00B0FF', // Bright, modern accent color
+    marginBottom: 12,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 20,
-    color: '#B0B0B0',
-    marginBottom: 30,
+    fontSize: 18,
+    color: '#B0B0B0', // Softer gray for subtitle
+    marginBottom: 40,
     textAlign: 'center',
+    lineHeight: 24,
   },
   deviceContainer: {
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 25,
   },
   deviceName: {
-    fontSize: 22,
+    fontSize: 24, // Slightly larger for better readability
     color: '#00B0FF',
-    marginBottom: 20,
+    marginBottom: 18,
     fontWeight: '600',
   },
   navigationButton: {
     backgroundColor: '#00B0FF',
     paddingVertical: 16,
-    paddingHorizontal: 40,
-    borderRadius: 50,
+    paddingHorizontal: 50,
+    borderRadius: 30, // More rounded edges
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
-    elevation: 5,
+    marginTop: 15,
+    elevation: 6,
+    shadowColor: '#00B0FF', // Matching the accent color for consistency
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
   },
   navigationButtonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: '600',
-    marginRight: 10,
+    marginRight: 12, // Increased spacing between text and icon
   },
   buttonIcon: {
-    marginLeft: 10,
+    marginLeft: 12,
   },
   noDeviceText: {
     fontSize: 18,
     color: '#B0B0B0',
-    marginTop: 20,
+    marginTop: 30,
+    textAlign: 'center',
   },
 });
+
 
 export default HomeScreen;
