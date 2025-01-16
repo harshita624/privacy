@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, SafeAreaView } from 'react-native';
 import { Camera } from 'expo-camera';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 const CameraScreen = () => {
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [photo, setPhoto] = useState(null);
+  const [isPreview, setIsPreview] = useState(false);
   const cameraRef = useRef(null);
 
   useEffect(() => {
@@ -17,58 +18,117 @@ const CameraScreen = () => {
   }, []);
 
   const handleFlipCamera = () => {
-    setType(
-      type === Camera.Constants.Type.back
+    setType(prevType =>
+      prevType === Camera.Constants.Type.back
         ? Camera.Constants.Type.front
         : Camera.Constants.Type.back
     );
   };
 
   const takePhoto = async () => {
-    if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync();
-      setPhoto(photo.uri);  // Store the captured photo URI
-    } else {
-      Alert.alert('Camera Error', 'Unable to capture photo.');
+    if (!cameraRef.current) {
+      Alert.alert('Error', 'Camera not ready');
+      return;
+    }
+
+    try {
+      const options = {
+        quality: 0.9,
+        base64: false,
+        skipProcessing: true,
+      };
+
+      const photo = await cameraRef.current.takePictureAsync(options);
+      setPhoto(photo.uri);
+      setIsPreview(true);
+    } catch (error) {
+      console.error('Failed to take picture:', error);
+      Alert.alert('Error', 'Failed to take picture');
     }
   };
 
+  const retakePhoto = () => {
+    setPhoto(null);
+    setIsPreview(false);
+  };
+
+  const savePhoto = () => {
+    // Implement photo saving logic here
+    Alert.alert('Success', 'Photo saved successfully!');
+    retakePhoto(); // Reset to camera view after saving
+  };
+
   if (hasPermission === null) {
-    return <Text>Requesting camera permission...</Text>;
+    return (
+      <SafeAreaView style={styles.permissionContainer}>
+        <Text style={styles.permissionText}>Requesting camera permission...</Text>
+      </SafeAreaView>
+    );
   }
+
   if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
+    return (
+      <SafeAreaView style={styles.permissionContainer}>
+        <Text style={styles.permissionText}>No access to camera</Text>
+        <TouchableOpacity 
+          style={styles.permissionButton}
+          onPress={() => Camera.requestCameraPermissionsAsync()}
+        >
+          <Text style={styles.permissionButtonText}>Request Permission</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
   }
 
   return (
-    <View style={styles.container}>
-      <Camera style={styles.camera} type={type} ref={cameraRef}>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.flipButton}
-            onPress={handleFlipCamera}
-          >
-            <Ionicons name="ios-camera-reverse" size={40} color="white" />
-          </TouchableOpacity>
+    <SafeAreaView style={styles.container}>
+      {!isPreview ? (
+        <Camera 
+          style={styles.camera} 
+          type={type} 
+          ref={cameraRef}
+          autoFocus={Camera.Constants.AutoFocus.on}
+          ratio="16:9"
+        >
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.flipButton}
+              onPress={handleFlipCamera}
+            >
+              <Ionicons name="camera-reverse" size={30} color="white" />
+            </TouchableOpacity>
 
-          {/* Capture Photo Button */}
-          <TouchableOpacity
-            style={styles.captureButton}
-            onPress={takePhoto}
-          >
-            <Ionicons name="camera" size={40} color="white" />
-          </TouchableOpacity>
-        </View>
-      </Camera>
+            <TouchableOpacity
+              style={styles.captureButton}
+              onPress={takePhoto}
+            >
+              <View style={styles.captureCircle} />
+            </TouchableOpacity>
+          </View>
+        </Camera>
+      ) : (
+        <View style={styles.previewContainer}>
+          <Image source={{ uri: photo }} style={styles.previewImage} />
+          <View style={styles.previewButtons}>
+            <TouchableOpacity
+              style={styles.previewButton}
+              onPress={retakePhoto}
+            >
+              <Ionicons name="refresh" size={24} color="white" />
+              <Text style={styles.previewButtonText}>Retake</Text>
+            </TouchableOpacity>
 
-      {/* Display captured photo */}
-      {photo && (
-        <View style={styles.photoContainer}>
-          <Text style={styles.photoLabel}>Captured Photo:</Text>
-          <Image source={{ uri: photo }} style={styles.capturedPhoto} />
+            <TouchableOpacity
+              style={[styles.previewButton, styles.saveButton]}
+              onPress={savePhoto}
+            >
+              <Ionicons name="checkmark" size={24} color="white" />
+              <Text style={styles.previewButtonText}>Save</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

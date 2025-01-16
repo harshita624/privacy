@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as LocalAuthentication from 'expo-local-authentication';
 
+
 const SettingSection = ({ title, children }) => (
   <View style={styles.section}>
     <Text style={styles.sectionTitle}>{title}</Text>
@@ -49,7 +50,7 @@ const SettingItem = ({ icon, title, subtitle, onPress, value, type = 'navigate' 
   </TouchableOpacity>
 );
 
-const SettingsScreen = ({ navigation }) => {
+const SettingsScreen = ({ navigation, onClose }) => {
   const [userEmail, setUserEmail] = useState('user@example.com');
   const [userName, setUserName] = useState('John Doe');
   const [accountType, setAccountType] = useState('Free');
@@ -63,6 +64,16 @@ const SettingsScreen = ({ navigation }) => {
     notificationsEnabled: true
   });
 
+  
+  const handleBackPress = () => {
+    // If onClose prop exists (Modal mode), use it
+    if (onClose) {
+      onClose();
+    } else {
+      // Otherwise use navigation
+      navigation.goBack();
+    }
+  };
   useEffect(() => {
     loadUserData();
     loadSettings();
@@ -221,13 +232,13 @@ const SettingsScreen = ({ navigation }) => {
 
   return (
     <ScrollView style={styles.container}>
-  <TouchableOpacity 
-  style={styles.backButton} 
-  onPress={() => navigation.navigate('Home')}
->
-  <Ionicons name="arrow-back" size={24} color="#fff" style={styles.backIcon} />
-  <Text style={styles.backButtonText}>Back</Text>
-</TouchableOpacity>
+      <TouchableOpacity 
+        style={styles.backButton} 
+        onPress={handleBackPress}
+      >
+        <Ionicons name="arrow-back" size={24} color="#fff" style={styles.backIcon} />
+        <Text style={styles.backButtonText}>Back</Text>
+      </TouchableOpacity>
 
       {/* Profile Section */}
       <SettingSection title="Profile Information">
