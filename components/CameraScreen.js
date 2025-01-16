@@ -8,7 +8,6 @@ const CameraScreen = () => {
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [photo, setPhoto] = useState(null);
   const [isPreview, setIsPreview] = useState(false);
-  const [isCameraReady, setIsCameraReady] = useState(false);
   const cameraRef = useRef(null);
 
   useEffect(() => {
@@ -17,11 +16,6 @@ const CameraScreen = () => {
       setHasPermission(status === 'granted');
     })();
   }, []);
-
-  const onCameraReady = () => {
-    setIsCameraReady(true);
-    console.log('Camera is ready');
-  };
 
   const handleFlipCamera = () => {
     setType(prevType =>
@@ -32,20 +26,19 @@ const CameraScreen = () => {
   };
 
   const takePhoto = async () => {
-    if (!cameraRef.current || !isCameraReady) {
-      Alert.alert('Error', 'Camera is not ready yet');
+    if (!cameraRef.current) {
+      Alert.alert('Error', 'Camera not ready');
       return;
     }
 
     try {
       const options = {
-        quality: 0.5,
+        quality: 0.9,
         base64: false,
         skipProcessing: true,
       };
 
       const photo = await cameraRef.current.takePictureAsync(options);
-      console.log('Photo taken:', photo);
       setPhoto(photo.uri);
       setIsPreview(true);
     } catch (error) {
@@ -62,7 +55,7 @@ const CameraScreen = () => {
   const savePhoto = () => {
     // Implement photo saving logic here
     Alert.alert('Success', 'Photo saved successfully!');
-    retakePhoto();
+    retakePhoto(); // Reset to camera view after saving
   };
 
   if (hasPermission === null) {
@@ -95,26 +88,23 @@ const CameraScreen = () => {
           type={type} 
           ref={cameraRef}
           autoFocus={Camera.Constants.AutoFocus.on}
-          onCameraReady={onCameraReady}
-          onMountError={(error) => console.error('Camera mount error:', error)}
+          ratio="16:9"
         >
-          {isCameraReady && (
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={styles.flipButton}
-                onPress={handleFlipCamera}
-              >
-                <Ionicons name="camera-reverse" size={30} color="white" />
-              </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.flipButton}
+              onPress={handleFlipCamera}
+            >
+              <Ionicons name="camera-reverse" size={30} color="white" />
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.captureButton}
-                onPress={takePhoto}
-              >
-                <View style={styles.captureCircle} />
-              </TouchableOpacity>
-            </View>
-          )}
+            <TouchableOpacity
+              style={styles.captureButton}
+              onPress={takePhoto}
+            >
+              <View style={styles.captureCircle} />
+            </TouchableOpacity>
+          </View>
         </Camera>
       ) : (
         <View style={styles.previewContainer}>
@@ -145,110 +135,62 @@ const CameraScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#121212', // Dark gray for background
   },
   camera: {
     flex: 1,
     width: '100%',
-    height: '100%',
+    justifyContent: 'flex-end',
   },
   buttonContainer: {
     flex: 1,
-    backgroundColor: 'transparent',
-    flexDirection: 'column',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 40, // Adjust margin to make the buttons stand out more
   },
   flipButton: {
     padding: 15,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Slightly more transparent for a modern look
     borderRadius: 50,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: '#000', // Subtle shadow effect
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
-    elevation: 4,
+    elevation: 4, // Elevation for Android
   },
   captureButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    padding: 20,
+    backgroundColor: '#1abc9c', // Teal for a fresh, modern look
+    borderRadius: 50,
+    shadowColor: '#000', // Subtle shadow effect
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
-    elevation: 4,
+    elevation: 4, // Elevation for Android
   },
-  captureCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#1abc9c',
-  },
-  previewContainer: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  previewImage: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  previewButtons: {
-    position: 'absolute',
-    bottom: 40,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    paddingHorizontal: 20,
-  },
-  previewButton: {
-    flexDirection: 'row',
+  photoContainer: {
+    marginTop: 30,
     alignItems: 'center',
-    padding: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    borderRadius: 25,
-    minWidth: 120,
-    justifyContent: 'center',
   },
-  saveButton: {
-    backgroundColor: '#1abc9c',
-  },
-  previewButtonText: {
-    color: 'white',
-    fontSize: 16,
-    marginLeft: 8,
-  },
-  permissionContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#121212',
-  },
-  permissionText: {
-    color: 'white',
+  photoLabel: {
     fontSize: 18,
-    marginBottom: 20,
-    textAlign: 'center',
+    color: '#fff', // White text for contrast on dark background
+    marginBottom: 10,
+    fontWeight: '600', // Slightly bolder for readability
   },
-  permissionButton: {
-    backgroundColor: '#1abc9c',
-    padding: 15,
-    borderRadius: 25,
-    minWidth: 200,
-    alignItems: 'center',
-  },
-  permissionButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
+  capturedPhoto: {
+    width: 300,
+    height: 300,
+    borderRadius: 15, // Slightly more rounded for a modern feel
+    borderWidth: 2,
+    borderColor: '#1abc9c', // Teal border to match the accent color
+    marginTop: 20,
   },
 });
 
+
 export default CameraScreen;
+
