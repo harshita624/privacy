@@ -9,10 +9,15 @@ import {
   SafeAreaView, 
   Platform,
   Linking,
-  ActivityIndicator
+  ActivityIndicator,
+  Dimensions
 } from 'react-native';
 import { Camera } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
+
+const WINDOW_HEIGHT = Dimensions.get('window').height;
+const WINDOW_WIDTH = Dimensions.get('window').width;
+const CAPTURE_SIZE = Math.floor(WINDOW_WIDTH * 0.2);
 
 const CameraScreen = () => {
   const [hasPermission, setHasPermission] = useState(null);
@@ -20,13 +25,13 @@ const CameraScreen = () => {
   const [photo, setPhoto] = useState(null);
   const [isPreview, setIsPreview] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isCameraReady, setIsCameraReady] = useState(false);
   const cameraRef = useRef(null);
   const isMounted = useRef(true);
 
   useEffect(() => {
     requestPermissions();
     
-    // Cleanup function
     return () => {
       isMounted.current = false;
     };
@@ -34,7 +39,10 @@ const CameraScreen = () => {
 
   const requestPermissions = async () => {
     try {
+      console.log('Requesting camera permissions...');
       const cameraStatus = await Camera.requestCameraPermissionsAsync();
+      console.log('Camera permission status:', cameraStatus.status);
+      
       if (isMounted.current) {
         setHasPermission(cameraStatus.status === 'granted');
       }
@@ -43,12 +51,7 @@ const CameraScreen = () => {
         Alert.alert(
           'Permission Required',
           'Camera permission is required to use this feature. Please enable it in your device settings.',
-          [
-            { 
-              text: 'OK', 
-              onPress: () => console.log('Permission denied')
-            }
-          ]
+          [{ text: 'OK' }]
         );
       }
     } catch (error) {
@@ -57,7 +60,16 @@ const CameraScreen = () => {
     }
   };
 
+  const onCameraReady = () => {
+    console.log('Camera is ready');
+    setIsCameraReady(true);
+  };
+
   const handleFlipCamera = () => {
+    if (!isCameraReady) {
+      Alert.alert('Error', 'Camera is not ready yet');
+      return;
+    }
     setType(prevType =>
       prevType === Camera.Constants.Type.back
         ? Camera.Constants.Type.front
@@ -66,8 +78,17 @@ const CameraScreen = () => {
   };
 
   const takePhoto = async () => {
+    console.log('Attempting to take photo...');
+    console.log('Camera ready state:', isCameraReady);
+    console.log('Camera ref exists:', !!cameraRef.current);
+
     if (!cameraRef.current) {
       Alert.alert('Error', 'Camera not ready');
+      return;
+    }
+
+    if (!isCameraReady) {
+      Alert.alert('Error', 'Please wait for camera to finish loading');
       return;
     }
 
@@ -79,13 +100,15 @@ const CameraScreen = () => {
     try {
       setIsProcessing(true);
       const options = {
-        quality: 0.9,
+        quality: 0.85,
         base64: false,
-        skipProcessing: Platform.OS === 'android', // Skip processing only on Android
+        skipProcessing: Platform.OS === 'android',
         exif: false,
       };
 
+      console.log('Taking picture with options:', options);
       const photo = await cameraRef.current.takePictureAsync(options);
+      console.log('Photo taken:', photo.uri);
       
       if (isMounted.current) {
         setPhoto(photo.uri);
@@ -93,7 +116,7 @@ const CameraScreen = () => {
       }
     } catch (error) {
       console.error('Failed to take picture:', error);
-      Alert.alert('Error', 'Failed to take picture');
+      Alert.alert('Error', `Failed to take picture: ${error.message}`);
     } finally {
       if (isMounted.current) {
         setIsProcessing(false);
@@ -138,39 +161,50 @@ const CameraScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {!isPreview ? (
-        <Camera 
-          style={styles.camera} 
-          type={type} 
-          ref={cameraRef}
-          onMountError={(error) => {
-            console.error("Camera mount error:", error);
-            Alert.alert("Error", "Failed to start camera");
-          }}
-        >
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.flipButton}
-              onPress={handleFlipCamera}
-              disabled={isProcessing}
-            >
-              <Ionicons name="camera-reverse" size={30} color="white" />
-            </TouchableOpacity>
+        <View style={styles.cameraContainer}>
+          <Camera 
+            style={styles.camera} 
+            type={type} 
+            ref={cameraRef}
+            onCameraReady={onCameraReady}
+            onMountError={(error) => {
+              console.error("Camera mount error:", error);
+              Alert.alert("Error", `Failed to start camera: ${error.message}`);
+            }}
+            useCamera2Api={Platform.OS === 'android'}
+          >
+            {isCameraReady ? (
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={styles.flipButton}
+                  onPress={handleFlipCamera}
+                  disabled={isProcessing}
+                >
+                  <Ionicons name="camera-reverse" size={30} color="white" />
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.captureButton}
-              onPress={takePhoto}
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
+                <TouchableOpacity
+                  style={styles.captureButton}
+                  onPress={takePhoto}
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? (
+                    <ActivityIndicator size="large" color="#fff" />
+                  ) : (
+                    <View style={styles.captureCircle} />
+                  )}
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#fff" />
-              ) : (
-                <View style={styles.captureCircle} />
-              )}
-            </TouchableOpacity>
-          </View>
-        </Camera>
+                <Text style={styles.loadingText}>Camera is initializing...</Text>
+              </View>
+            )}
+          </Camera>
+        </View>
       ) : (
         <View style={styles.previewContainer}>
           <Image 
@@ -197,16 +231,22 @@ const CameraScreen = () => {
           </View>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'black',
+  },
+  cameraContainer: {
+    flex: 1,
+    marginTop: Platform.OS === 'android' ? 10 : 0,
   },
   camera: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   buttonContainer: {
     flex: 1,
@@ -216,21 +256,31 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     marginBottom: 40,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: 'white',
+    fontSize: 16,
+    marginTop: 10,
+  },
   flipButton: {
     padding: 15,
   },
   captureButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: CAPTURE_SIZE,
+    height: CAPTURE_SIZE,
+    borderRadius: Math.floor(CAPTURE_SIZE / 2),
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   captureCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: Math.floor(CAPTURE_SIZE - 10),
+    height: Math.floor(CAPTURE_SIZE - 10),
+    borderRadius: Math.floor((CAPTURE_SIZE - 10) / 2),
     backgroundColor: 'white',
   },
   previewContainer: {
