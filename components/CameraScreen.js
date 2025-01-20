@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, SafeAreaView, Platform } from 'react-native';
 import { Camera } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -12,9 +12,31 @@ const CameraScreen = () => {
 
   useEffect(() => {
     (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
+      // Request both camera and media library permissions
+      const cameraStatus = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(cameraStatus.status === 'granted');
+      
+      // If permission is denied, show alert with instructions
+      if (cameraStatus.status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'Camera permission is required to use this feature. Please enable it in your device settings.',
+          [
+            { 
+              text: 'OK', 
+              onPress: () => console.log('Permission denied')
+            }
+          ]
+        );
+      }
     })();
+
+    // Cleanup function
+    return () => {
+      if (cameraRef.current) {
+        cameraRef.current = null;
+      }
+    };
   }, []);
 
   const handleFlipCamera = () => {
@@ -36,6 +58,7 @@ const CameraScreen = () => {
         quality: 0.9,
         base64: false,
         skipProcessing: true,
+        exif: false,
       };
 
       const photo = await cameraRef.current.takePictureAsync(options);
@@ -53,11 +76,11 @@ const CameraScreen = () => {
   };
 
   const savePhoto = () => {
-    // Implement photo saving logic here
     Alert.alert('Success', 'Photo saved successfully!');
-    retakePhoto(); // Reset to camera view after saving
+    retakePhoto();
   };
 
+  // Loading state
   if (hasPermission === null) {
     return (
       <SafeAreaView style={styles.permissionContainer}>
@@ -66,29 +89,38 @@ const CameraScreen = () => {
     );
   }
 
+  // Permission denied state
   if (hasPermission === false) {
     return (
       <SafeAreaView style={styles.permissionContainer}>
-        <Text style={styles.permissionText}>No access to camera</Text>
-        <TouchableOpacity 
-          style={styles.permissionButton}
-          onPress={() => Camera.requestCameraPermissionsAsync()}
-        >
-          <Text style={styles.permissionButtonText}>Request Permission</Text>
-        </TouchableOpacity>
+        <Text style={styles.permissionText}>Camera access denied</Text>
+        <Text style={styles.permissionSubText}>
+          Please enable camera access in your device settings to use this feature.
+        </Text>
+        {Platform.OS === 'ios' && (
+          <TouchableOpacity 
+            style={styles.permissionButton}
+            onPress={() => Linking.openSettings()}
+          >
+            <Text style={styles.permissionButtonText}>Open Settings</Text>
+          </TouchableOpacity>
+        )}
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {!isPreview ? (
         <Camera 
           style={styles.camera} 
           type={type} 
           ref={cameraRef}
-          autoFocus={Camera.Constants.AutoFocus.on}
           ratio="16:9"
+          onMountError={(error) => {
+            console.error("Camera mount error:", error);
+            Alert.alert("Error", "Failed to start camera");
+          }}
         >
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -128,69 +160,108 @@ const CameraScreen = () => {
           </View>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#121212', // Dark gray for background
+    backgroundColor: '#000',
   },
   camera: {
     flex: 1,
     width: '100%',
-    justifyContent: 'flex-end',
   },
   buttonContainer: {
-    flex: 1,
-    justifyContent: 'center',
+    position: 'absolute',
+    bottom: 40,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     alignItems: 'center',
-    marginBottom: 40, // Adjust margin to make the buttons stand out more
+    paddingHorizontal: 20,
   },
   flipButton: {
     padding: 15,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Slightly more transparent for a modern look
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     borderRadius: 50,
-    marginBottom: 20,
-    shadowColor: '#000', // Subtle shadow effect
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4, // Elevation for Android
   },
   captureButton: {
-    padding: 20,
-    backgroundColor: '#1abc9c', // Teal for a fresh, modern look
-    borderRadius: 50,
-    shadowColor: '#000', // Subtle shadow effect
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4, // Elevation for Android
-  },
-  photoContainer: {
-    marginTop: 30,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  photoLabel: {
-    fontSize: 18,
-    color: '#fff', // White text for contrast on dark background
-    marginBottom: 10,
-    fontWeight: '600', // Slightly bolder for readability
-  },
-  capturedPhoto: {
-    width: 300,
-    height: 300,
-    borderRadius: 15, // Slightly more rounded for a modern feel
+  captureCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#fff',
     borderWidth: 2,
-    borderColor: '#1abc9c', // Teal border to match the accent color
-    marginTop: 20,
+    borderColor: '#000',
+  },
+  previewContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  previewImage: {
+    flex: 1,
+    width: '100%',
+  },
+  previewButtons: {
+    position: 'absolute',
+    bottom: 40,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 20,
+  },
+  previewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    borderRadius: 25,
+  },
+  previewButtonText: {
+    color: '#fff',
+    marginLeft: 8,
+    fontSize: 16,
+  },
+  saveButton: {
+    backgroundColor: '#1abc9c',
+  },
+  permissionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000',
+    padding: 20,
+  },
+  permissionText: {
+    color: '#fff',
+    fontSize: 18,
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  permissionSubText: {
+    color: '#999',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  permissionButton: {
+    backgroundColor: '#1abc9c',
+    padding: 15,
+    borderRadius: 25,
+  },
+  permissionButtonText: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
 
-
 export default CameraScreen;
-
